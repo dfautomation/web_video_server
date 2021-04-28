@@ -103,6 +103,12 @@ void ImageTransportImageStreamer::imageCallback(const sensor_msgs::ImageConstPtr
       }
       img = float_image;
     }
+    else if (msg->encoding.find("C1") != std::string::npos)
+    {
+      // scale monochrome images for visualization
+      cv::normalize(cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_8UC1)->image, 
+                    img, 0, 255, cv::NORM_MINMAX, CV_8U, cv::noArray());
+    }
     else
     {
       // Convert to OpenCV native BGR color
