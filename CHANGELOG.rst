@@ -2,8 +2,8 @@
 Changelog for package web_video_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2022-07-17)
+------------------
 * Patch for `#99 <https://github.com/RobotWebTools/web_video_server/issues/99>`_.
 * fix vp9 and h264, support for opencv4 and ffmpeg 4 (`#103 <https://github.com/RobotWebTools/web_video_server/issues/103>`_)
 * add a mention of mjpegcanvasjs in the readme (`#100 <https://github.com/RobotWebTools/web_video_server/issues/100>`_)
