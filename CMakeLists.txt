@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
   src/ros_compressed_streamer.cpp
   src/jpeg_streamers.cpp
   src/png_streamers.cpp
+  src/crc32.cpp
 )
 
 ## Specify libraries to link a library or executable target against

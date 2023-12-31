@@ -22,6 +22,7 @@ public:
 
 protected:
   virtual void sendImage(const sensor_msgs::CompressedImageConstPtr &msg, const ros::Time &time);
+  virtual void convertGrayscale16toGrayscaleAlpha(const sensor_msgs::CompressedImageConstPtr &msg);
 
 private:
   void imageCallback(const sensor_msgs::CompressedImageConstPtr &msg);
