@@ -2,8 +2,8 @@
 Changelog for package web_video_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.3 (2024-10-10)
+------------------
 * Set default queue size to 2.
 
   * This is to allow detection of client disconnection.
