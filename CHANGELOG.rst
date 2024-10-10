@@ -2,6 +2,20 @@
 Changelog for package web_video_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Set default queue size to 2.
+
+  * This is to allow detection of client disconnection.
+
+* Revert "Add a workaround for MultipartStream constant busy state (`#83 <https://github.com/dfautomation/web_video_server/issues/83>`_)"
+
+  * This reverts commit c3d08d412f9fd960e8978233cc3e43a246bd1968.
+
+* Convert png from 16-bit grayscale to grayscale-alpha in RosCompressedStreamer.
+* Update README.md
+* Contributors: Adrian Macneil, Patrick Chin
+
 0.2.2 (2021-07-23)
 ------------------
 * fix vp9 and h264, support for opencv4 and ffmpeg 4 (`#103 <https://github.com/RobotWebTools/web_video_server/issues/103>`_)
