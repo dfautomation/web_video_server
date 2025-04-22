@@ -102,6 +102,9 @@ void RosCompressedStreamer::convertGrayscale16toGrayscaleAlpha(const sensor_msgs
 }
 
 void RosCompressedStreamer::imageCallback(const sensor_msgs::CompressedImageConstPtr &msg) {
+  if (inactive_)
+    return;
+
   boost::mutex::scoped_lock lock(send_mutex_); // protects last_msg and last_frame
   last_msg = msg;
   last_frame = ros::Time(msg->header.stamp.sec, msg->header.stamp.nsec);
