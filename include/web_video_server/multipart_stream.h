@@ -16,10 +16,10 @@ public:
                   std::size_t max_queue_size=2);
 
   void sendInitialHeader();
-  void sendPartHeader(const ros::Time &time, const std::string& type, size_t payload_size);
+  void sendPartHeader(const std::chrono::steady_clock::time_point &time, const std::string& type, size_t payload_size);
   void sendPartFooter();
-  void sendPartAndClear(const ros::Time &time, const std::string& type, std::vector<unsigned char> &data);
-  void sendPart(const ros::Time &time, const std::string& type, const boost::asio::const_buffer &buffer,
+  void sendPartAndClear(const std::chrono::steady_clock::time_point &time, const std::string& type, std::vector<unsigned char> &data);
+  void sendPart(const std::chrono::steady_clock::time_point &time, const std::string& type, const boost::asio::const_buffer &buffer,
 		async_web_server_cpp::HttpConnection::ResourcePtr resource);
 
 private:

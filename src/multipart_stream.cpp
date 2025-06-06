@@ -21,9 +21,13 @@ void MultipartStream::sendInitialHeader() {
   connection_->write("--"+boundry_+"\r\n");
 }
 
-void MultipartStream::sendPartHeader(const ros::Time &time, const std::string& type, size_t payload_size) {
+void MultipartStream::sendPartHeader(
+  const std::chrono::steady_clock::time_point & time, const std::string & type,
+  size_t payload_size)
+{
   char stamp[20];
-  sprintf(stamp, "%.06lf", time.toSec());
+  snprintf(stamp, sizeof(stamp), "%.06lf",
+      std::chrono::duration_cast<std::chrono::duration<double>>(time.time_since_epoch()).count());
   boost::shared_ptr<std::vector<async_web_server_cpp::HttpHeader> > headers(
       new std::vector<async_web_server_cpp::HttpHeader>());
   headers->push_back(async_web_server_cpp::HttpHeader("Content-type", type));
@@ -37,34 +41,38 @@ void MultipartStream::sendPartHeader(const ros::Time &time, const std::string& t
   connection_->write(async_web_server_cpp::HttpReply::to_buffers(*headers), headers);
 }
 
-void MultipartStream::sendPartFooter() {
+void MultipartStream::sendPartFooter()
+{
   boost::shared_ptr<std::string> str(new std::string("\r\n--"+boundry_+"\r\n"));
   connection_->write(boost::asio::buffer(*str), str);
   if (max_queue_size_ > 0) pending_footers_.push(str);
 }
 
-void MultipartStream::sendPartAndClear(const ros::Time &time, const std::string& type,
-				       std::vector<unsigned char> &data) {
-  if (!isBusy())
-  {
+void MultipartStream::sendPartAndClear(
+  const std::chrono::steady_clock::time_point & time, const std::string & type,
+  std::vector<unsigned char> & data)
+{
+  if (!isBusy()) {
     sendPartHeader(time, type, data.size());
     connection_->write_and_clear(data);
     sendPartFooter();
   }
 }
 
-void MultipartStream::sendPart(const ros::Time &time, const std::string& type,
-			       const boost::asio::const_buffer &buffer,
-			       async_web_server_cpp::HttpConnection::ResourcePtr resource) {
-  if (!isBusy())
-  {
+void MultipartStream::sendPart(
+  const std::chrono::steady_clock::time_point & time, const std::string & type,
+  const boost::asio::const_buffer & buffer,
+  async_web_server_cpp::HttpConnection::ResourcePtr resource)
+{
+  if (!isBusy()) {
     sendPartHeader(time, type, boost::asio::buffer_size(buffer));
     connection_->write(buffer, resource);
     sendPartFooter();
   }
 }
 
-bool MultipartStream::isBusy() {
+bool MultipartStream::isBusy()
+{
   while (!pending_footers_.empty() && pending_footers_.front().expired())
   {
     pending_footers_.pop();

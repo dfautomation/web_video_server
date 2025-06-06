@@ -14,6 +14,8 @@
 #include "web_video_server/vp9_streamer.h"
 #include "async_web_server_cpp/http_reply.hpp"
 
+using namespace std::chrono_literals;
+
 namespace web_video_server
 {
 
@@ -109,7 +111,7 @@ void WebVideoServer::spin()
     ros::Rate r(publish_rate_);
 
     while( ros::ok() ) {
-      this->restreamFrames( 1.0 / publish_rate_ );
+      this->restreamFrames( 1s / publish_rate_ );
       r.sleep();
     }
   } else {
@@ -119,7 +121,7 @@ void WebVideoServer::spin()
   server_->stop();
 }
 
-void WebVideoServer::restreamFrames( double max_age )
+void WebVideoServer::restreamFrames(std::chrono::duration<double> max_age)
 {
   boost::mutex::scoped_lock lock(subscriber_mutex_);
 
@@ -305,6 +307,9 @@ bool WebVideoServer::handle_list_streams(const async_web_server_cpp::HttpRequest
           connection->write("\">");
           connection->write(image_topic_itr->substr(base_topic.size()));
           connection->write("</a> (");
+          connection->write("<a href=\"/stream?topic=");
+          connection->write(*image_topic_itr);
+          connection->write("\">Stream</a>) (");
           connection->write("<a href=\"/snapshot?topic=");
           connection->write(*image_topic_itr);
           connection->write("\">Snapshot</a>)");
@@ -331,6 +336,9 @@ bool WebVideoServer::handle_list_streams(const async_web_server_cpp::HttpRequest
     connection->write("\">");
     connection->write(*image_topic_itr);
     connection->write("</a> (");
+    connection->write("<a href=\"/stream?topic=");
+    connection->write(*image_topic_itr);
+    connection->write("\">Stream</a>) (");
     connection->write("<a href=\"/snapshot?topic=");
     connection->write(*image_topic_itr);
     connection->write("\">Snapshot</a>)");

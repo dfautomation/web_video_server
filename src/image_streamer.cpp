@@ -50,14 +50,15 @@ void ImageTransportImageStreamer::initialize(const cv::Mat &)
 {
 }
 
-void ImageTransportImageStreamer::restreamFrame(double max_age)
+void ImageTransportImageStreamer::restreamFrame(std::chrono::duration<double> max_age)
 {
   if (inactive_ || !initialized_ )
     return;
   try {
-    if ( last_frame + ros::Duration(max_age) < ros::Time::now() ) {
+    if (last_frame_ + max_age < std::chrono::steady_clock::now()) {
       boost::mutex::scoped_lock lock(send_mutex_);
-      sendImage(output_size_image, ros::Time::now() ); // don't update last_frame, it may remain an old value.
+      // don't update last_frame, it may remain an old value.
+      sendImage(output_size_image, std::chrono::steady_clock::now());
     }
   }
   catch (boost::system::system_error &e)
@@ -81,6 +82,29 @@ void ImageTransportImageStreamer::restreamFrame(double max_age)
   }
 }
 
+cv::Mat ImageTransportImageStreamer::decodeImage(const sensor_msgs::ImageConstPtr& msg)
+{
+  if (msg->encoding.find("F") != std::string::npos)
+  {
+    // scale floating point images
+    cv::Mat float_image_bridge = cv_bridge::toCvCopy(msg, msg->encoding)->image;
+    cv::Mat_<float> float_image = float_image_bridge;
+    double max_val;
+    cv::minMaxIdx(float_image, 0, &max_val);
+
+    if (max_val > 0)
+    {
+      float_image *= (255 / max_val);
+    }
+    return float_image;
+  }
+  else
+  {
+    // Convert to OpenCV native BGR color
+    return cv_bridge::toCvCopy(msg, "bgr8")->image;
+  }
+}
+
 void ImageTransportImageStreamer::imageCallback(const sensor_msgs::ImageConstPtr &msg)
 {
   if (inactive_)
@@ -89,32 +113,15 @@ void ImageTransportImageStreamer::imageCallback(const sensor_msgs::ImageConstPtr
   cv::Mat img;
   try
   {
-    if (msg->encoding.find("F") != std::string::npos)
-    {
-      // scale floating point images
-      cv::Mat float_image_bridge = cv_bridge::toCvCopy(msg, msg->encoding)->image;
-      cv::Mat_<float> float_image = float_image_bridge;
-      double max_val;
-      cv::minMaxIdx(float_image, 0, &max_val);
-
-      if (max_val > 0)
-      {
-        float_image *= (255 / max_val);
-      }
-      img = float_image;
-    }
-    else
-    {
-      // Convert to OpenCV native BGR color
-      img = cv_bridge::toCvCopy(msg, "bgr8")->image;
-    }
+    img = decodeImage(msg);
 
     int input_width = img.cols;
     int input_height = img.rows;
 
-    
-    output_width_ = input_width;
-    output_height_ = input_height;
+    if (output_width_ == -1)
+      output_width_ = input_width;
+    if (output_height_ == -1)
+      output_height_ = input_height;
 
     if (invert_)
     {
@@ -142,8 +149,8 @@ void ImageTransportImageStreamer::imageCallback(const sensor_msgs::ImageConstPtr
       initialized_ = true;
     }
 
-    last_frame = ros::Time::now();
-    sendImage(output_size_image, msg->header.stamp);
+    last_frame_ = std::chrono::steady_clock::now();
+    sendImage(output_size_image, last_frame_);
   }
   catch (cv_bridge::Exception &e)
   {

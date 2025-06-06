@@ -1,6 +1,8 @@
 #include "web_video_server/png_streamers.h"
 #include "async_web_server_cpp/http_reply.hpp"
 
+#include <cv_bridge/cv_bridge.h>
+
 namespace web_video_server
 {
 
@@ -18,7 +20,21 @@ PngStreamer::~PngStreamer()
   boost::mutex::scoped_lock lock(send_mutex_); // protects sendImage.
 }
 
-void PngStreamer::sendImage(const cv::Mat &img, const ros::Time &time)
+cv::Mat PngStreamer::decodeImage(const sensor_msgs::ImageConstPtr& msg)
+{
+  // Handle alpha values since PNG supports it
+  if (sensor_msgs::image_encodings::hasAlpha(msg->encoding))
+  {
+    return cv_bridge::toCvCopy(msg, "bgra8")->image;
+  }
+  else
+  {
+    // Use the normal decode otherwise
+    return ImageTransportImageStreamer::decodeImage(msg);
+  }
+}
+
+void PngStreamer::sendImage(const cv::Mat & img, const std::chrono::steady_clock::time_point & time)
 {
   std::vector<int> encode_params;
 #if CV_VERSION_MAJOR >= 3
@@ -64,7 +80,21 @@ PngSnapshotStreamer::~PngSnapshotStreamer()
   boost::mutex::scoped_lock lock(send_mutex_); // protects sendImage.
 }
 
-void PngSnapshotStreamer::sendImage(const cv::Mat &img, const ros::Time &time)
+cv::Mat PngSnapshotStreamer::decodeImage(const sensor_msgs::ImageConstPtr& msg)
+{
+  // Handle alpha values since PNG supports it
+  if (sensor_msgs::image_encodings::hasAlpha(msg->encoding))
+  {
+    return cv_bridge::toCvCopy(msg, "bgra8")->image;
+  }
+  else
+  {
+    // Use the normal decode otherwise
+    return ImageTransportImageStreamer::decodeImage(msg);
+  }
+}
+
+void PngSnapshotStreamer::sendImage(const cv::Mat &img, const std::chrono::steady_clock::time_point &time)
 {
   std::vector<int> encode_params;
 #if CV_VERSION_MAJOR >= 3
@@ -78,7 +108,9 @@ void PngSnapshotStreamer::sendImage(const cv::Mat &img, const ros::Time &time)
   cv::imencode(".png", img, encoded_buffer, encode_params);
 
   char stamp[20];
-  sprintf(stamp, "%.06lf", time.toSec());
+  snprintf(
+    stamp, sizeof(stamp), "%.06lf",
+    std::chrono::duration_cast<std::chrono::duration<double>>(time.time_since_epoch()).count());
   async_web_server_cpp::HttpReply::builder(async_web_server_cpp::HttpReply::ok)
       .header("Connection", "close")
       .header("Server", "web_video_server")
