@@ -2,6 +2,23 @@
 Changelog for package web_video_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.4 (2025-06-06)
+------------------
+* Fix mutex lock error during streamer destruction.
+* Use chrono steady clock for frame timing (backport #173) (#174)
+  * Use chrono steady_clock for frame timing
+  * Increase cmake minimum version
+* Add support for alpha pngs by adding per stream type decode functions (#106)
+* Add link to /stream in stream list (#118)
+* (ros1)(actions) also run on feature branches (#153)
+* Add support for jpg compression format (#142)
+* Fixed output resize bug (#130)
+* Add github CI workflow and update maintainer (#151)
+  * Update package.xml
+  * Remove travis config
+  * Add github CI workflow
+* Contributors: Amal Nanavati, Błażej Sowa, Matthew, Matthijs van der Burgh, Patrick Chin, Tina Tian, TobinHall, Wong Tze Lin
+
 0.2.3 (2024-10-10)
 ------------------
 * Set default queue size to 2.
